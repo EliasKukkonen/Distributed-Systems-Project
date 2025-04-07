@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package chatservice;
+
+service ChatService {
+  // Verifies the token and grants access to the chat (placeholder menu)
+  rpc EnterChat(EnterChatRequest) returns (EnterChatResponse);
+  // Logs the user out by invalidating the token
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
+}
+
+message EnterChatRequest {
+  string token = 1;
+}
+
+message EnterChatResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message LogoutRequest {
+  string token = 1;
+}
+
+message LogoutResponse {
+  bool success = 1;
+  string message = 2;
+}
