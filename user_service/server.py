@@ -13,26 +13,26 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "proto"))
 from proto import user_service_pb2
 from proto import user_service_pb2_grpc
 
-# MongoDB connection: using the service name 'mongodb' as defined in docker-compose
+# MongoDB connection
 mongo_client = pymongo.MongoClient("mongodb://mongodb:27017/")
 db = mongo_client["userdb"]
 users_collection = db["users"]
 
-# Password hashing settings (using bcrypt)
+# Password hashing using bcrypt
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# JWT settings
-SECRET_KEY = "YOUR_SECRET_KEY"  # Change this to a secure key!
+# JWT Token
+SECRET_KEY = "YOUR_SECRET_KEY"  # Default is "YOUR_SECRET_KEY" for now
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 class UserServiceServicer(user_service_pb2_grpc.UserServiceServicer):
     def Register(self, request, context):
-        # Check if a user with the same username already exists in the database
+        # Checks if a user with the same username already exists in the database
         if users_collection.find_one({"username": request.username}):
             return user_service_pb2.RegisterResponse(success=False, message="Username already exists.")
         
-        # Hash the password and store the user
+        # Hashes the password and stores the user
         hashed_password = pwd_context.hash(request.password)
         users_collection.insert_one({"username": request.username, "hashed_password": hashed_password})
         print(f"Registered new user: {request.username}")
@@ -50,10 +50,10 @@ class UserServiceServicer(user_service_pb2_grpc.UserServiceServicer):
 
     def Exit(self, request, context):
         print(f"User exited: {request.username}")
-        return user_service_pb2.ExitResponse(success=True, message="Goodbye.")
+        return user_service_pb2.ExitResponse(success=True, message="Exiting...")
 
 def serve():
-    # Create a gRPC server with a ThreadPoolExecutor for handling multiple requests concurrently
+    # gRPC server with a ThreadPoolExecutor for handling multiple requests concurrently
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     user_service_pb2_grpc.add_UserServiceServicer_to_server(UserServiceServicer(), server)
     server.add_insecure_port('[::]:50051')
@@ -61,7 +61,7 @@ def serve():
     print("gRPC server is running on port 50051...")
     try:
         while True:
-            time.sleep(86400)  # Sleep for one day
+            time.sleep(86400)  # Default is one day
     except KeyboardInterrupt:
         server.stop(0)
 

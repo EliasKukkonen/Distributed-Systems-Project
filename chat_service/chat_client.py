@@ -2,7 +2,7 @@ import grpc
 import sys
 import os
 
-# Optionally add the proto folder to sys.path if needed:
+# Added proto directory to sys.path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "proto"))
 
 from chat_service_pb2 import EnterChatRequest, LogoutRequest
@@ -17,7 +17,7 @@ def run_chat(token):
             print("Access denied:", response.message)
             return
         print(response.message)
-        # Simple menu with a placeholder and logout option
+        # Placeholder menu with logout option
         try:
             while True:
                 print("\nMenu:")

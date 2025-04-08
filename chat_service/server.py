@@ -6,20 +6,20 @@ import jwt
 from chat_service_pb2 import EnterChatResponse, LogoutResponse
 import chat_service_pb2_grpc
 
-# Use the same secret key as in user_service so tokens can be validated
+# Same secret key as in user_service so tokens can be validated
 SECRET_KEY = "YOUR_SECRET_KEY"
 ALGORITHM = "HS256"
 
-# In-memory set to hold active tokens
+# Holds active tokens
 active_tokens = set()
 
 class ChatServiceServicer(chat_service_pb2_grpc.ChatServiceServicer):
     def EnterChat(self, request, context):
         token = request.token
         try:
-            # Validate the token using JWT
+            # Validates the token using JWT
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-            # Add token to active tokens if not already present
+            # Adds token to active tokens if not already present
             if token not in active_tokens:
                 active_tokens.add(token)
             username = payload.get("sub", "Unknown")
@@ -40,7 +40,7 @@ class ChatServiceServicer(chat_service_pb2_grpc.ChatServiceServicer):
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     chat_service_pb2_grpc.add_ChatServiceServicer_to_server(ChatServiceServicer(), server)
-    server.add_insecure_port('[::]:50052')  # Use a different port than user_service
+    server.add_insecure_port('[::]:50052')  # Different port than user_service
     server.start()
     print("Chat Service is running on port 50052...")
     try:

@@ -4,7 +4,7 @@ FROM python:3.9-slim
 # Set the working directory
 WORKDIR /app
 
-# (Optionally) Set PYTHONPATH if your proto files are in a subfolder
+# PYTHONPATH for proto files
 ENV PYTHONPATH="/app/proto"
 
 # Copy requirements and install dependencies

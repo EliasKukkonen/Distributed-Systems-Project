@@ -1,18 +1,18 @@
-# Käytetään kevyttä Python-kuvaa
+# Uses a lightweight Python image
 FROM python:3.9-slim
 
-# Asetetaan työskentelykansio
+# Working directory
 WORKDIR /app
 
-# Määritellään ympäristömuuttuja niin, että Python etsii moduulit myös proto-kansiosta
+# PYTHONPATH for proto files
 ENV PYTHONPATH="/app/proto"
 
-# Kopioidaan riippuvuusmääritystiedosto ja asennetaan riippuvuudet
+# Copy requirements and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Kopioidaan koko projektin sisältö konttiin
+# Copy the entire project
 COPY . .
 
-# Käynnistetään palvelin
+# Start the user service server
 CMD ["python", "server.py"]
