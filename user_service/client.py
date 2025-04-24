@@ -1,7 +1,7 @@
 import grpc
+import sys
+import os
 
-# Added proto directory to sys.path
-import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "proto"))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -9,7 +9,6 @@ from proto import user_service_pb2
 from proto import user_service_pb2_grpc
 from chat_service.chat_client import run_chat
 
-# PLACEHOLDER
 def run_user_service_client():
     with grpc.insecure_channel('localhost:50051') as channel:
         stub = user_service_pb2_grpc.UserServiceStub(channel)

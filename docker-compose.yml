@@ -23,5 +23,16 @@ services:
     depends_on:
       - user_service
 
+  file_service:
+    build: ./file_service
+    container_name: file_service
+    ports:
+      - "50053:50053"
+    depends_on:
+      - mongodb
+    volumes:
+      - uploads:/app/uploads
+
 volumes:
   mongodbdata:
+  uploads:
