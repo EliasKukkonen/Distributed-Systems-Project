@@ -1,0 +1,43 @@
+syntax = "proto3";
+package messaging;
+
+//
+// ------------- data structures -------------
+//
+message Init          { string token = 1; }               // first message → auth
+message JoinChannel   { string name  = 1; }
+message LeaveChannel  { string name  = 1; }
+message PrivateMsg    { string recipient = 1; string body = 2; }
+message ChannelMsg    { string channel   = 1; string body = 2; }
+message HistoryReq    { string channel   = 1; int32 limit = 2; }
+message HistoryRes    { repeated ChannelMsg items = 1; }
+
+//
+// ------------- envelopes -------------
+//
+message ClientEnvelope {
+  oneof payload {
+    Init        init         = 1;
+    JoinChannel join         = 2;
+    LeaveChannel leave       = 3;
+    PrivateMsg  pm           = 4;
+    ChannelMsg  cm           = 5;
+    HistoryReq  history_req  = 6;
+  }
+}
+
+message ServerEnvelope {
+  oneof payload {
+    string       notice       = 1;   // system info
+    PrivateMsg   pm           = 2;
+    ChannelMsg   cm           = 3;
+    HistoryRes   history_res  = 4;
+  }
+}
+
+//
+// ------------- service -------------
+//
+service MessagingService {
+  rpc Chat (stream ClientEnvelope) returns (stream ServerEnvelope);
+}

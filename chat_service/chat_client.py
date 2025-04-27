@@ -3,11 +3,13 @@ import sys
 import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../file_service')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../messaging_service")))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "proto"))
 
 from chat_service_pb2 import EnterChatRequest, LogoutRequest
 from chat_service_pb2_grpc import ChatServiceStub
 from file_service.client import run_file_service
+from messaging_service.client import run_messaging_ui
 
 def run_chat(token):
     with grpc.insecure_channel('localhost:50052') as channel:  # Docker-verkon osoite
@@ -22,12 +24,12 @@ def run_chat(token):
         try:
             while True:
                 print("\nMenu:")
-                print("1. Placeholder action")
+                print("1. Messaging Service")
                 print("2. File Service")
                 print("3. Logout")
                 choice = input("Your choice: ")
                 if choice == "1":
-                    print("Placeholder action executed.")
+                    run_messaging_ui(token) 
                 elif choice == "2":
                     run_file_service()
                 elif choice == "3":

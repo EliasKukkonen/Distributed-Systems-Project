@@ -22,7 +22,7 @@ users_collection = db["users"]
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # JWT Token
-SECRET_KEY = "YOUR_SECRET_KEY"  # Default is "YOUR_SECRET_KEY" for now
+SECRET_KEY = os.getenv("SECRET_KEY", "dev")  # Default is "YOUR_SECRET_KEY" for now
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 

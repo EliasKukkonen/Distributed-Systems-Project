@@ -2,12 +2,13 @@ import grpc
 from concurrent import futures
 import time
 import jwt
+import sys, os
 
 from chat_service_pb2 import EnterChatResponse, LogoutResponse
 import chat_service_pb2_grpc
 
 # Same secret key as in user_service so tokens can be validated
-SECRET_KEY = "YOUR_SECRET_KEY"
+SECRET_KEY = os.getenv("SECRET_KEY", "dev")
 ALGORITHM = "HS256"
 
 # Holds active tokens
