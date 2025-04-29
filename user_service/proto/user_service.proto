@@ -5,7 +5,6 @@ package userservice;
 service UserService {
   rpc Register(RegisterRequest) returns (RegisterResponse);
   rpc Login(LoginRequest) returns (LoginResponse);
-  rpc Exit(ExitRequest) returns (ExitResponse);
 }
 
 message RegisterRequest {
@@ -27,13 +26,4 @@ message LoginResponse {
   bool success = 1;
   string message = 2;
   string token = 3;
-}
-
-message ExitRequest {
-  string username = 1;
-}
-
-message ExitResponse {
-  bool success = 1;
-  string message = 2;
 }

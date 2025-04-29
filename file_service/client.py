@@ -1,8 +1,10 @@
 import requests
 import os
 
+# Base URL for file service
 FILE_SERVICE_URL = "http://localhost:50053"
 
+# Upload a file to the file service
 def upload_file(file_path):
     url = f"{FILE_SERVICE_URL}/files/upload"
     try:
@@ -22,6 +24,7 @@ def upload_file(file_path):
         print(f"Error uploading file: {e}")
         return None
 
+# Download a file from the file service
 def download_file(file_id, output_path):
     url = f"{FILE_SERVICE_URL}/files/{file_id}/download"
     try:
@@ -35,26 +38,34 @@ def download_file(file_id, output_path):
     except Exception as e:
         print(f"Error downloading file: {e}")
 
+# Menu-driven interface for file operations
 def run_file_service():
-    while True:
-        print("\nFile Service Menu:")
-        print("1. Upload file")
-        print("2. Download file")
-        print("3. Back to Chat Service")
-        choice = input("Your choice: ")
+    try:
+        while True:
+            # Display file service menu
+            print("\nFile service menu:")
+            print("1. Upload file")
+            print("2. Download file")
+            print("3. Return")
+            choice = input("Your choice: ")
         
-        if choice == "1":
-            file_path = input("Enter file path to upload (e.g., example.txt): ")
-            upload_file(file_path)
-        elif choice == "2":
-            file_id = input("Enter file ID to download: ")
-            output_path = input("Enter output path (e.g., downloaded_file.txt): ")
-            download_file(file_id, output_path)
-        elif choice == "3":
-            print("Returning to Chat Service...")
-            break
-        else:
-            print("Invalid choice. Please try again.")
+            if choice == "1":
+                file_path = input("Enter file path to upload (e.g., example.txt): ")
+                upload_file(file_path)
+            elif choice == "2":
+                file_id = input("Enter file ID to download: ")
+                output_path = input("Enter output path (e.g., downloaded_file.txt): ")
+                download_file(file_id, output_path)
+            elif choice == "3":
+                # Return to chat service
+                print("\nReturning to chat service...")
+                break
+            else:
+                print("Invalid choice, please try again.")
+    except KeyboardInterrupt:
+            # Handle Ctrl+C gracefully
+            print("\n\nReturning to chat service...")
 
+# Entry point for testing or standalone usage
 if __name__ == "__main__":
     run_file_service()

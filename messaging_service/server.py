@@ -4,36 +4,42 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from proto import messaging_service_pb2 as pb
 from proto import messaging_service_pb2_grpc as pb_grpc
 
-# ──────────────────────────────────────────────────────────────
+# JWT secret and MongoDB URI (shared settings for microservices)
 SECRET     = os.getenv("SECRET_KEY", "dev")
 MONGO_URI  = os.getenv("MONGO_URI", "mongodb://mongodb:27017")
+
+# Connect to MongoDB (used for storing message history)
 mongo      = AsyncIOMotorClient(MONGO_URI)
 db         = mongo["messagingdb"]
 
+# Helper function to get current UTC time
 def utc(): return datetime.datetime.utcnow()
 
-# ───────────────────────── live-hub ───────────────────────────
+# Live Hub (in-memory user tracking)
 class Hub:
     def __init__(self):
         self.queues:   dict[str, asyncio.Queue] = {}          # user → outbound queue
         self.channel:  dict[str, str]            = {}          # user → current channel
-        self.members: defaultdict[str, set[str]] = defaultdict(set)
+        self.members: defaultdict[str, set[str]] = defaultdict(set) # channel → set of users
 
     def login(self, user: str, q: asyncio.Queue):
+        # Register new user in "Main" channel
         self.queues[user]  = q
         self.channel[user] = "Main"
         self.members["Main"].add(user)
 
     def logout(self, user: str):
+        # Remove user from system on disconnect
         ch = self.channel.pop(user, None)
         if ch: self.members[ch].discard(user)
         self.queues.pop(user, None)
 
-    # helpers ---------------------------------------------------
+    # Send a message to a specific user
     async def unicast(self, user: str, env: pb.ServerEnvelope):
         q = self.queues.get(user)
         if q: await q.put(env)
 
+    # Broadcast a message to all users in a specific channel
     async def broadcast(self, ch: str, env: pb.ServerEnvelope, *, exclude=None):
         for u in self.members[ch]:
             if u != exclude:
@@ -41,19 +47,20 @@ class Hub:
 
 hub = Hub()
 
-# ──────────────────────── servicer ────────────────────────────
+# Messaging Service Implementation
 class Messaging(pb_grpc.MessagingServiceServicer):
+    # Main gRPC bidirectional stream between client and server
     async def Chat(self, req_iter, ctx):
         send_q: asyncio.Queue[pb.ServerEnvelope] = asyncio.Queue()
         user: str | None = None
 
-        # -------- consumer: client → server --------
+        # Consumer task: processes incoming messages from client
         async def consume():
             nonlocal user
             async for env in req_iter:
                 match env.WhichOneof("payload"):
 
-                    # 1) first frame must be Init ---------------------------------
+                    # Validate user's JWT token
                     case "init":
                         try:
                             payload = jwt.decode(env.init.token, SECRET,
@@ -67,7 +74,7 @@ class Messaging(pb_grpc.MessagingServiceServicer):
                             await send_q.put(pb.ServerEnvelope(notice="Bad token"))
                             break
 
-                    # 2) channel join (exclusive) ---------------------------------
+                    # Handle channel switching
                     case "join":
                         new_ch = env.join.name or "Main"
                         old_ch = hub.channel[user]
@@ -95,7 +102,7 @@ class Messaging(pb_grpc.MessagingServiceServicer):
                         # immediate history dump
                         await self._send_history(user, new_ch, send_q)
 
-                    # 2b) explicit leave -> return to Main  -------------------
+                    # Handle explicit leave (back to Main channel)
                     case "leave":
                         old_ch = env.leave.name or hub.channel[user]
 
@@ -125,7 +132,7 @@ class Messaging(pb_grpc.MessagingServiceServicer):
                         await self._send_history(user, "Main", send_q)
 
 
-                    # 3) message to current channel -------------------------------
+                    # Public channel message
                     case "cm":
                         ch = hub.channel[user]
                         body = env.cm.body
@@ -138,7 +145,7 @@ class Messaging(pb_grpc.MessagingServiceServicer):
                                 channel=ch, body=f"{user}: {body}"
                             )))
 
-                    # 4) private message ------------------------------------------
+                    # Private message
                     case "pm":
                         pm = env.pm
                         await db.messages.insert_one({
@@ -157,7 +164,7 @@ class Messaging(pb_grpc.MessagingServiceServicer):
 
         consumer = asyncio.create_task(consume())
 
-        # -------- producer: server → client -------------
+        # Producer task: sends messages back to client
         try:
             while True:
                 env = await send_q.get()
@@ -166,7 +173,7 @@ class Messaging(pb_grpc.MessagingServiceServicer):
             consumer.cancel()
             if user: hub.logout(user)
 
-    # helper: send last N lines of a channel
+    # Helper: Send recent message history of a channel
     async def _send_history(self, user: str, ch: str, q: asyncio.Queue, limit=100):
         cur = db.messages.find({"channel": ch},
                                sort=[("ts", -1)], limit=limit)
@@ -178,7 +185,7 @@ class Messaging(pb_grpc.MessagingServiceServicer):
             await q.put(pb.ServerEnvelope(
                 history_res=pb.HistoryRes(items=items)))
 
-# ───────────────────────── bootstrap ──────────────────────────
+# Server Bootstrap
 async def serve():
     server = grpc.aio.server()
     pb_grpc.add_MessagingServiceServicer_to_server(Messaging(), server)

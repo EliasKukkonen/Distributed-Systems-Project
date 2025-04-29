@@ -6,54 +6,56 @@ import jwt
 from datetime import datetime, timedelta
 from passlib.context import CryptContext
 
-# Added proto directory to sys.path
+# Set up Python path to find generated proto modules
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "proto"))
 
+# Import generated proto classes
 from proto import user_service_pb2
 from proto import user_service_pb2_grpc
 
-# MongoDB connection
+# Connect to MongoDB (could easily be scaled horizontally)
 mongo_client = pymongo.MongoClient("mongodb://mongodb:27017/")
 db = mongo_client["userdb"]
 users_collection = db["users"]
 
-# Password hashing using bcrypt
+# Set up password hashing using bcrypt (secure hashing)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# JWT Token
+# JWT secret key and settings
 SECRET_KEY = os.getenv("SECRET_KEY", "dev")  # Default is "YOUR_SECRET_KEY" for now
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
+# Define the UserService implementation
 class UserServiceServicer(user_service_pb2_grpc.UserServiceServicer):
+    # Handle user registration
     def Register(self, request, context):
-        # Checks if a user with the same username already exists in the database
+        # Check if username already exists
         if users_collection.find_one({"username": request.username}):
             return user_service_pb2.RegisterResponse(success=False, message="Username already exists.")
         
-        # Hashes the password and stores the user
+        # Store user with hashed password for security
         hashed_password = pwd_context.hash(request.password)
         users_collection.insert_one({"username": request.username, "hashed_password": hashed_password})
         print(f"Registered new user: {request.username}")
         return user_service_pb2.RegisterResponse(success=True, message="Registration successful.")
 
+    # Handle user login
     def Login(self, request, context):
         user = users_collection.find_one({"username": request.username})
         if user and pwd_context.verify(request.password, user["hashed_password"]):
+            # Create a JWT token with an expiration time
             expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
             token = jwt.encode({"sub": request.username, "exp": expire}, SECRET_KEY, algorithm=ALGORITHM)
             print(f"User logged in: {request.username}")
-            return user_service_pb2.LoginResponse(success=True, message="Login successful.", token=token)
+            return user_service_pb2.LoginResponse(success=True, message="\nLogin successful.", token=token)
         else:
             return user_service_pb2.LoginResponse(success=False, message="Invalid username or password.", token="")
 
-    def Exit(self, request, context):
-        print(f"User exited: {request.username}")
-        return user_service_pb2.ExitResponse(success=True, message="Exiting...")
-
+# Start and run the gRPC server
 def serve():
-    # gRPC server with a ThreadPoolExecutor for handling multiple requests concurrently
+    # Create a gRPC server using a thread pool (scalable to handle multiple concurrent clients)
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     user_service_pb2_grpc.add_UserServiceServicer_to_server(UserServiceServicer(), server)
     server.add_insecure_port('[::]:50051')
@@ -61,9 +63,12 @@ def serve():
     print("gRPC server is running on port 50051...")
     try:
         while True:
-            time.sleep(86400)  # Default is one day
+            # Keep the server alive indefinitely
+            time.sleep(86400)  # Sleep for a day
     except KeyboardInterrupt:
+        # Graceful shutdown on Ctrl+C
         server.stop(0)
 
+# Entry point to start the server
 if __name__ == '__main__':
     serve()

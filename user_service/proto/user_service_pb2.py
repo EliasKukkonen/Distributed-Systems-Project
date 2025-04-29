@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12user_service.proto\x12\x0buserservice\"5\n\x0fRegisterRequest\x12\x10\n\x08username\x18\x01 \x01(\t\x12\x10\n\x08password\x18\x02 \x01(\t\"4\n\x10RegisterResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\"2\n\x0cLoginRequest\x12\x10\n\x08username\x18\x01 \x01(\t\x12\x10\n\x08password\x18\x02 \x01(\t\"@\n\rLoginResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\r\n\x05token\x18\x03 \x01(\t\"\x1f\n\x0b\x45xitRequest\x12\x10\n\x08username\x18\x01 \x01(\t\"0\n\x0c\x45xitResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t2\xd3\x01\n\x0bUserService\x12G\n\x08Register\x12\x1c.userservice.RegisterRequest\x1a\x1d.userservice.RegisterResponse\x12>\n\x05Login\x12\x19.userservice.LoginRequest\x1a\x1a.userservice.LoginResponse\x12;\n\x04\x45xit\x12\x18.userservice.ExitRequest\x1a\x19.userservice.ExitResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12user_service.proto\x12\x0buserservice\"5\n\x0fRegisterRequest\x12\x10\n\x08username\x18\x01 \x01(\t\x12\x10\n\x08password\x18\x02 \x01(\t\"4\n\x10RegisterResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\"2\n\x0cLoginRequest\x12\x10\n\x08username\x18\x01 \x01(\t\x12\x10\n\x08password\x18\x02 \x01(\t\"@\n\rLoginResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\r\n\x05token\x18\x03 \x01(\t2\x96\x01\n\x0bUserService\x12G\n\x08Register\x12\x1c.userservice.RegisterRequest\x1a\x1d.userservice.RegisterResponse\x12>\n\x05Login\x12\x19.userservice.LoginRequest\x1a\x1a.userservice.LoginResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -39,10 +39,6 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_LOGINREQUEST']._serialized_end=194
   _globals['_LOGINRESPONSE']._serialized_start=196
   _globals['_LOGINRESPONSE']._serialized_end=260
-  _globals['_EXITREQUEST']._serialized_start=262
-  _globals['_EXITREQUEST']._serialized_end=293
-  _globals['_EXITRESPONSE']._serialized_start=295
-  _globals['_EXITRESPONSE']._serialized_end=343
-  _globals['_USERSERVICE']._serialized_start=346
-  _globals['_USERSERVICE']._serialized_end=557
+  _globals['_USERSERVICE']._serialized_start=263
+  _globals['_USERSERVICE']._serialized_end=413
 # @@protoc_insertion_point(module_scope)
