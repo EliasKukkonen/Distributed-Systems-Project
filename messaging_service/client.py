@@ -1,10 +1,4 @@
-"""
-CLI client for messaging_service
---------------------------------
-• Connects to messaging_service gRPC server at localhost:50054.
-• Supports joining channels, sending private messages, and quitting.
-• Called by chat_service after user login.
-"""
+
 
 import os
 import sys
